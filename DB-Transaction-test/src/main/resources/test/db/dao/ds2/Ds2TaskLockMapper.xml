@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="test.db.dao.ds2.Ds2TaskLockMapper">
+    <resultMap id="BaseResultMap" type="test.db.entity.TaskLock">
+        <id column="task_name" jdbcType="VARCHAR" property="taskName"/>
+        <result column="lock_flag" jdbcType="INTEGER" property="lockFlag"/>
+        <result column="begin_time" jdbcType="TIMESTAMP" property="beginTime"/>
+        <result column="end_time" jdbcType="TIMESTAMP" property="endTime"/>
+        <result column="process_info" jdbcType="TIMESTAMP" property="processInfo"/>
+        <result column="db_current_date" jdbcType="TIMESTAMP" property="dbCurrentDate"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        task_name, lock_flag, begin_time, end_time, process_info, now() as db_current_date
+    </sql>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from task_lock
+        where task_name = #{taskName,jdbcType=VARCHAR}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from task_lock
+        where task_name = #{taskName,jdbcType=VARCHAR}
+    </delete>
+
+    <insert id="insert" parameterType="test.db.entity.TaskLock">
+        insert into task_lock (task_name, lock_flag, begin_time, end_time, process_info)
+        values (#{taskName,jdbcType=VARCHAR}, #{lockFlag,jdbcType=INTEGER},
+        #{beginTime,jdbcType=TIMESTAMP}, #{endTime,jdbcType=TIMESTAMP}, #{processInfo,jdbcType=VARCHAR}
+    </insert>
+
+    <insert id="insertSelective" parameterType="test.db.entity.TaskLock">
+        insert into task_lock
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="taskName != null">
+                task_name,
+            </if>
+            <if test="lockFlag != null">
+                lock_flag,
+            </if>
+            <if test="beginTime != null">
+                begin_time,
+            </if>
+            <if test="endTime != null">
+                end_time,
+            </if>
+            <if test="processInfo != null">
+                process_info,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="taskName != null">
+                #{taskName,jdbcType=VARCHAR},
+            </if>
+            <if test="lockFlag != null">
+                #{lockFlag,jdbcType=INTEGER},
+            </if>
+            <if test="beginTime != null">
+                #{beginTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="endTime != null">
+                #{endTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="processInfo != null">
+                #{processInfo,jdbcType=VARCHAR},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="test.db.entity.TaskLock">
+        update task_lock
+        <set>
+            <if test="lockFlag != null">
+                lock_flag = #{lockFlag,jdbcType=INTEGER},
+            </if>
+            <if test="beginTime != null">
+                begin_time = #{beginTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="endTime != null">
+                end_time = #{endTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="processInfo != null">
+                process_info = #{processInfo,jdbcType=VARCHAR},
+            </if>
+        </set>
+        where task_name = #{taskName,jdbcType=VARCHAR}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="test.db.entity.TaskLock">
+        update task_lock
+        set
+        lock_flag = #{lockFlag,jdbcType=INTEGER},
+        begin_time = #{beginTime,jdbcType=TIMESTAMP},
+        end_time = #{endTime,jdbcType=TIMESTAMP},
+        process_info = #{processInfo,jdbcType=VARCHAR}
+        where task_name = #{taskName,jdbcType=VARCHAR}
+    </update>
+
+
+    <!--  -->
+    <select id="selectForUpdate" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from task_lock
+        where task_name = #{taskName,jdbcType=VARCHAR} for update
+    </select>
+
+    <update id="updateLockFlagNoCheck" parameterType="test.db.entity.TaskLock">
+        update task_lock
+        set
+        lock_flag = #{lockFlag,jdbcType=INTEGER},
+        begin_time = now(),
+        process_info = #{processInfo,jdbcType=VARCHAR}
+        where task_name = #{taskName,jdbcType=VARCHAR}
+    </update>
+</mapper>

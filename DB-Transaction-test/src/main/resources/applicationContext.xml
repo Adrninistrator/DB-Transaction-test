@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd"
+       default-lazy-init="true">
+
+    <context:component-scan base-package="test.db">
+        <context:include-filter type="annotation" expression="org.aspectj.lang.annotation.Aspect"/>
+    </context:component-scan>
+
+    <bean id="configProvider" class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+        <property name="location" value="classpath:application.properties"/>
+        <property name="fileEncoding" value="UTF-8"/>
+    </bean>
+
+    <aop:aspectj-autoproxy/>
+
+    <bean id="monitor-filter-bean" class="test.db.druid_filter.filter.DruidMonitorFilter" init-method="initFilter" destroy-method="destroyFilter"/>
+
+    <!--    DataSource    -->
+    <bean id="dataSource1" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <property name="name" value="ds1"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <property name="initialSize" value="${jdbc.initialSize}"/>
+        <property name="minIdle" value="${jdbc.minIdle}"/>
+        <property name="maxActive" value="${jdbc.maxActive}"/>
+        <property name="maxWait" value="${jdbc.maxWait}"/>
+        <property name="timeBetweenEvictionRunsMillis" value="${jdbc.timeBetweenEvictionRunsMillis}"/>
+        <property name="minEvictableIdleTimeMillis" value="${jdbc.minEvictableIdleTimeMillis}"/>
+        <property name="removeAbandoned" value="${jdbc.removeAbandoned}"/>
+        <property name="validationQuery" value="SELECT 'ds1'"/>
+        <property name="testWhileIdle" value="true"/>
+        <property name="testOnBorrow" value="true"/>
+        <property name="testOnReturn" value="false"/>
+        <property name="poolPreparedStatements" value="false"/>
+        <!--        <property name="filters" value="stat,log4j2"/>    -->
+        <!--        <property name="filters" value="monitor_filter"/>-->
+        <property name="proxyFilters">
+            <list>
+                <ref bean="monitor-filter-bean"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="dataSource2" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <property name="name" value="ds2"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+        <property name="initialSize" value="${jdbc.initialSize}"/>
+        <property name="minIdle" value="${jdbc.minIdle}"/>
+        <property name="maxActive" value="${jdbc.maxActive}"/>
+        <property name="maxWait" value="${jdbc.maxWait}"/>
+        <property name="timeBetweenEvictionRunsMillis" value="${jdbc.timeBetweenEvictionRunsMillis}"/>
+        <property name="minEvictableIdleTimeMillis" value="${jdbc.minEvictableIdleTimeMillis}"/>
+        <property name="removeAbandoned" value="${jdbc.removeAbandoned}"/>
+        <property name="validationQuery" value="SELECT 'ds2'"/>
+        <property name="testWhileIdle" value="true"/>
+        <property name="testOnBorrow" value="true"/>
+        <property name="testOnReturn" value="false"/>
+        <property name="poolPreparedStatements" value="false"/>
+        <property name="proxyFilters">
+            <list>
+                <ref bean="monitor-filter-bean"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="testRoutingDataSource" class="test.db.datasource.TestRoutingDataSource">
+        <property name="defaultTargetDataSource" ref="dataSource1"/>
+        <property name="targetDataSources">
+            <map>
+                <entry key="dataSourceKey1" value-ref="dataSource1"/>
+                <entry key="dataSourceKey2" value-ref="dataSource2"/>
+            </map>
+        </property>
+    </bean>
+
+    <!--    TransactionManager    ds1   -->
+    <bean id="ds1TransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource1"/>
+    </bean>
+
+    <!--    TransactionTemplate ds1 -->
+    <bean id="ds1TransactionTemplate" class="org.springframework.transaction.support.TransactionTemplate">
+        <property name="transactionManager" ref="ds1TransactionManager"/>
+    </bean>
+
+    <!--    TransactionManager    ds2   -->
+    <bean id="ds2TransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource2"/>
+    </bean>
+
+    <!--    TransactionTemplate ds2 -->
+    <bean id="ds2TransactionTemplate" class="org.springframework.transaction.support.TransactionTemplate">
+        <property name="transactionManager" ref="ds2TransactionManager"/>
+    </bean>
+
+    <!--    TransactionManager    routing   -->
+    <bean id="routingTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="testRoutingDataSource"/>
+    </bean>
+
+    <!--    TransactionTemplate routing -->
+    <bean id="routingTransactionTemplate" class="org.springframework.transaction.support.TransactionTemplate">
+        <property name="transactionManager" ref="routingTransactionManager"/>
+    </bean>
+
+    <!--    tx:    -->
+    <tx:annotation-driven transaction-manager="routingTransactionManager" proxy-target-class="true"/>
+
+    <!--    SqlSessionFactory   ds1    -->
+    <bean id="ds1SqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="failFast" value="true"/>
+        <property name="dataSource" ref="dataSource1"/>
+        <property name="mapperLocations">
+            <list>
+                <value>classpath*:test/db/dao/ds1/*.xml</value>
+            </list>
+        </property>
+    </bean>
+
+    <!--    MapperScannerConfigurer ds1 可在basePackage.value属性中指定多个包名，通过半角逗号分隔，支持换行    -->
+    <bean id="ds1MapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage">
+            <value>test.db.dao.ds1</value>
+        </property>
+        <property name="sqlSessionFactoryBeanName" value="ds1SqlSessionFactory"/>
+    </bean>
+
+    <!--    SqlSessionFactory   ds2    -->
+    <bean id="ds2SqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="failFast" value="true"/>
+        <property name="dataSource" ref="dataSource2"/>
+        <property name="mapperLocations">
+            <list>
+                <value>classpath*:test/db/dao/ds2/*.xml</value>
+            </list>
+        </property>
+    </bean>
+
+    <!--    MapperScannerConfigurer ds2 可在basePackage.value属性中指定多个包名，通过半角逗号分隔，支持换行    -->
+    <bean id="ds2MapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage">
+            <value>test.db.dao.ds2</value>
+        </property>
+        <property name="sqlSessionFactoryBeanName" value="ds2SqlSessionFactory"/>
+    </bean>
+
+    <!--    SqlSessionFactory   routing    -->
+    <bean id="routingSqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="failFast" value="true"/>
+        <property name="dataSource" ref="testRoutingDataSource"/>
+        <property name="mapperLocations">
+            <list>
+                <value>classpath*:test/db/dao/routing/*.xml</value>
+            </list>
+        </property>
+    </bean>
+
+    <!--    MapperScannerConfigurer routing 可在basePackage.value属性中指定多个包名，通过半角逗号分隔，支持换行    -->
+    <bean id="routingMapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="basePackage">
+            <value>test.db.dao.routing</value>
+        </property>
+        <property name="sqlSessionFactoryBeanName" value="routingSqlSessionFactory"/>
+    </bean>
+</beans>

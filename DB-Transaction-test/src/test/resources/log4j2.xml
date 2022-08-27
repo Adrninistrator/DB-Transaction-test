@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE Configuration>
+<Configuration status="info" monitorInterval="5">
+    <Appenders>
+        <File name="file" fileName="log-print_stack_trace_${sys:print.stack.trace:-default}/${sys:test.mode:-default}.log">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %C{1}.%M(%L) - %m%n"/>
+        </File>
+
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5p %C{1}.%M(%L) - %m%n"/>
+        </Console>
+
+        <Async name="async" bufferSize="512" includeLocation="true">
+            <AppenderRef ref="console"/>
+            <AppenderRef ref="file"/>
+        </Async>
+    </Appenders>
+    <Loggers>
+        <Root level="info">
+            <AppenderRef ref="async"/>
+        </Root>
+
+        <Logger name="com.alibaba.druid.pool.DruidDataSource" level="error" additivity="false">
+            <AppenderRef ref="console"/>
+        </Logger>
+
+        <!--        <Logger name="test.db.dao" level="debug" additivity="false">-->
+        <!--            <AppenderRef ref="async"/>-->
+        <!--        </Logger>-->
+
+        <!--        <Logger name="org.springframework.transaction.support" level="debug" additivity="false">-->
+        <!--            <AppenderRef ref="async"/>-->
+        <!--        </Logger>-->
+
+        <!--        <Logger name="org.springframework.jdbc.datasource" level="debug" additivity="false">-->
+        <!--            <AppenderRef ref="async"/>-->
+        <!--        </Logger>-->
+
+        <Logger name="druidMonitorFilter" level="debug" additivity="false">
+            <AppenderRef ref="async"/>
+        </Logger>
+
+        <!--        <Logger name="druid.sql.DataSource" level="debug" additivity="false">-->
+        <!--            <AppenderRef ref="async"/>-->
+        <!--        </Logger>-->
+
+        <!--        <Logger name="druid.sql.Connection" level="debug" additivity="false">-->
+        <!--            <AppenderRef ref="async"/>-->
+        <!--        </Logger>-->
+
+        <!--        <Logger name="druid.sql.Statement" level="debug" additivity="false">-->
+        <!--            <AppenderRef ref="async"/>-->
+        <!--        </Logger>-->
+
+        <!--        <Logger name="druid.sql.ResultSet" level="debug" additivity="false">-->
+        <!--            <AppenderRef ref="async"/>-->
+        <!--        </Logger>-->
+    </Loggers>
+</Configuration>

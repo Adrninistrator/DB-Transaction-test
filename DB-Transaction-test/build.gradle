@@ -1,0 +1,99 @@
+apply plugin: 'eclipse'
+apply plugin: 'java'
+
+version = "0.1"
+description = "DB-Transaction-test"
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+def defaultEncoding = 'UTF-8'
+
+[compileJava, compileTestJava]*.options*.encoding = defaultEncoding
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    all*.exclude group: 'log4j'
+    all*.exclude group: 'commons-logging'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
+
+        resources {
+            srcDir 'src/main/resources'
+        }
+    }
+
+    test {
+        java {
+            srcDir 'src/test/java'
+        }
+
+        resources {
+            srcDir 'src/test/resources'
+        }
+    }
+}
+
+List apache_commons = [
+        'org.apache.commons:commons-lang3:3.12.0'
+]
+
+List mybatis = [
+        'org.mybatis:mybatis:3.2.8',
+        'org.mybatis:mybatis-spring:1.2.2'
+]
+
+List druid = [
+        'com.alibaba:druid:1.2.10'
+]
+
+List logger = [
+        'org.apache.logging.log4j:log4j-api:2.17.0',
+        'org.apache.logging.log4j:log4j-core:2.17.0',
+        'org.apache.logging.log4j:log4j-slf4j-impl:2.17.0',
+        'org.apache.logging.log4j:log4j-web:2.17.0',
+        'org.slf4j:jcl-over-slf4j:1.7.12'
+]
+
+List mysql = ["mysql:mysql-connector-java:8.0.29"]
+
+def spring_version = "5.3.20"
+List spring = [
+        "org.springframework:spring-core:$spring_version",
+        "org.springframework:spring-beans:$spring_version",
+        "org.springframework:spring-aop:$spring_version",
+        "org.springframework:spring-expression:$spring_version",
+        "org.springframework:spring-instrument:$spring_version",
+        "org.springframework:spring-context:$spring_version",
+        "org.springframework:spring-jdbc:$spring_version",
+        "org.springframework:spring-context-support:$spring_version",
+        "org.springframework:spring-orm:$spring_version",
+        "org.springframework:spring-aspects:$spring_version"
+]
+
+List junit = [
+        "junit:junit:4.13",
+        "org.springframework:spring-test:$spring_version"
+]
+
+dependencies {
+    implementation apache_commons, mybatis, logger, druid, mysql, spring
+    testImplementation junit
+}
+
+compileJava.dependsOn clean
+compileJava.options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+
+task createJavaProject {
+    doFirst {
+        sourceSets*.java.srcDirs*.each { it.mkdirs() }
+        sourceSets*.resources.srcDirs*.each { it.mkdirs() }
+    }
+}

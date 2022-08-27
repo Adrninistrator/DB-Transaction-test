@@ -1,0 +1,37 @@
+2022-08-20 21:20:36.772 [main] INFO  DbUtil.restartDataSources(106) - druidDataSource.restart dataSource1
+2022-08-20 21:20:36.772 [main] INFO  DbUtil.restartDataSources(106) - druidDataSource.restart dataSource2
+2022-08-20 21:20:36.772 [Druid-ConnectionPool-Create-870019773] DEBUG DruidMonitorFilter.connection_connectAfter(93) - ### [创建连接] connThreadId 168 自动提交
+SqlSessionInfo{connectionHashCode='4c5557a9', connThreadId=168, localPort=54422, dataSourceName='null', autoCommit=true, serverIP='127.0.0.1', serverPort=3306, dbName='testdb', userName='test', serverVersion='5.5.5-10.0.36-MariaDB'}
+2022-08-20 21:20:36.787 [Druid-ConnectionPool-Create-870019773] DEBUG DruidMonitorFilter.selectProcessList(272) - 
+processlist ID [168] USER [test] HOST [localhost:54422] DB [testdb] COMMAND [Query] INFO [select * from information_schema.processlist where id = CONNECTION_ID()]
+2022-08-20 21:20:36.787 [main] DEBUG DruidMonitorFilter.dataSource_getConnection(71) - ### [从连接池借出连接] connThreadId 168 dataSourceName ds2
+SqlSessionInfo{connectionHashCode='4c5557a9', connThreadId=168, localPort=54422, dataSourceName='ds2', autoCommit=true, serverIP='127.0.0.1', serverPort=3306, dbName='testdb', userName='test', serverVersion='5.5.5-10.0.36-MariaDB'}
+2022-08-20 21:20:36.787 [main] DEBUG DruidMonitorFilter.connection_setAutoCommit(242) - ### [关闭自动提交] connThreadId 168 自动提交
+SqlSessionInfo{connectionHashCode='4c5557a9', connThreadId=168, localPort=54422, dataSourceName='ds2', autoCommit=true, serverIP='127.0.0.1', serverPort=3306, dbName='testdb', userName='test', serverVersion='5.5.5-10.0.36-MariaDB'}
+2022-08-20 21:20:36.787 [main] INFO  TransactionService.doOperate(112) - 是否开启事务 是
+2022-08-20 21:20:36.787 [main] DEBUG DruidMonitorFilter.statementExecuteBefore(158) - ### [执行SQL语句] connThreadId 168 不自动提交
+select
+        task_name, lock_flag, begin_time, end_time, process_info, now() as db_current_date
+        from task_lock
+        where task_name = ? for update
+SqlSessionInfo{connectionHashCode='4c5557a9', connThreadId=168, localPort=54422, dataSourceName='ds2', autoCommit=false, serverIP='127.0.0.1', serverPort=3306, dbName='testdb', userName='test', serverVersion='5.5.5-10.0.36-MariaDB'}
+2022-08-20 21:20:36.787 [main] DEBUG DruidMonitorFilter.statementExecuteBefore(159) - 当前已开启事务
+2022-08-20 21:20:36.787 [main] DEBUG DruidMonitorFilter.statementExecuteBefore(169) - @@@ 执行SQL语句的连接ID（MySQL服务线程ID）与开启事务时的相同 168@[ds2]
+2022-08-20 21:20:36.787 [main] INFO  TransactionService.doOperate(116) - 查询到的数据 TaskLock{taskName='TEST_DB_TRANSACTION', lockFlag=1, beginTime=Sat Aug 20 21:20:36 CST 2022, endTime=null, dbCurrentDate=Sat Aug 20 21:20:36 CST 2022, processInfo='14424@hostname'}
+2022-08-20 21:20:36.787 [main] DEBUG DruidMonitorFilter.statementExecuteBefore(158) - ### [执行SQL语句] connThreadId 168 不自动提交
+update task_lock
+        set
+        lock_flag = ?,
+        begin_time = now(),
+        process_info = ?
+        where task_name = ?
+SqlSessionInfo{connectionHashCode='4c5557a9', connThreadId=168, localPort=54422, dataSourceName='ds2', autoCommit=false, serverIP='127.0.0.1', serverPort=3306, dbName='testdb', userName='test', serverVersion='5.5.5-10.0.36-MariaDB'}
+2022-08-20 21:20:36.787 [main] DEBUG DruidMonitorFilter.statementExecuteBefore(159) - 当前已开启事务
+2022-08-20 21:20:36.787 [main] DEBUG DruidMonitorFilter.statementExecuteBefore(169) - @@@ 执行SQL语句的连接ID（MySQL服务线程ID）与开启事务时的相同 168@[ds2]
+2022-08-20 21:20:36.787 [main] INFO  TransactionService.doOperate(125) - 修改记录状态为锁定，更新行数 1 TEST_DB_TRANSACTION
+2022-08-20 21:20:36.787 [main] DEBUG DruidMonitorFilter.connection_rollback(206) - ### [回滚事务] connThreadId 168 不自动提交
+SqlSessionInfo{connectionHashCode='4c5557a9', connThreadId=168, localPort=54422, dataSourceName='ds2', autoCommit=false, serverIP='127.0.0.1', serverPort=3306, dbName='testdb', userName='test', serverVersion='5.5.5-10.0.36-MariaDB'}
+2022-08-20 21:20:36.803 [main] DEBUG DruidMonitorFilter.connection_setAutoCommit(242) - ### [开启自动提交] connThreadId 168 不自动提交
+SqlSessionInfo{connectionHashCode='4c5557a9', connThreadId=168, localPort=54422, dataSourceName='ds2', autoCommit=false, serverIP='127.0.0.1', serverPort=3306, dbName='testdb', userName='test', serverVersion='5.5.5-10.0.36-MariaDB'}
+2022-08-20 21:20:36.803 [main] DEBUG DruidMonitorFilter.dataSource_releaseConnection(109) - ### [归还连接至连接池] connThreadId 168 自动提交 当前连接SQL语句执行次数: 2
+SqlSessionInfo{connectionHashCode='4c5557a9', connThreadId=168, localPort=54422, dataSourceName='ds2', autoCommit=true, serverIP='127.0.0.1', serverPort=3306, dbName='testdb', userName='test', serverVersion='5.5.5-10.0.36-MariaDB'}
